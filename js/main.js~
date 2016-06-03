@@ -1,0 +1,402 @@
+Parse.initialize("6MpmogydglUQ6iybpr62uewbuDlwOR2AuksjxYMw", "9yPVavXp18Z6lIIbIYEYdVb9wA0cC2BYbuLUBdC7");
+$(document).ready(function() {
+	
+	if (window.indexedDB) {
+	  console.log("IndexedDB support confirmed");
+	}
+	else {
+	   alert("IndexedDB is not supported.");
+	}
+    
+    //open database
+	var request = indexedDB.open('songs', 1);
+    
+    request.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        
+        if(!db.objectStoreNames.contains('songs_table')){
+            var store = db.createObjectStore('songs_table', {keyPath: 'id', autoIncrement: true});
+            var store2 = db.createObjectStore('service_table', {keyPath: 'id', autoIncrement: true});
+			
+	        console.log("The library table has been created");
+            //create index for title
+            store.createIndex("title","title",{unique:false});
+            store.createIndex("chorus", "chorus", {unique:false});
+            store.createIndex("verses", "verses", {unique:false});
+			
+			
+			store2.createIndex("service_song","service_song", {unique:false});
+        }
+	}
+
+    //success
+    request.onsuccess = function (e) {
+        console.log("Success: Opened Database...");
+        db = e.target.result;
+        
+        //show songs
+        show_Songs();
+		add_database();
+		//delete_library();
+		//show_service();
+		//delete_database();
+		
+  
+        
+	}
+	
+    //error
+    request.onerror = function (e) {
+        alert("Sorry! Could not open database...");
+	}
+	
+
+	morning_star = Parse.Object.extend("morning_star");
+
+	
+$("#saveSong").on("submit", function(e) {
+		e.preventDefault();
+
+		//Grab the note details, no real validation for now
+		//var id = document.querySelector("#")
+		var category = "<pre class=\"fonts fonts_title\">"+document.querySelector("#category_song").value+"</pre>";
+		var title = "<pre class=\"fonts fonts_title\">"+document.querySelector("#title_song").value+"</pre>";
+		var chorus = "<pre class=\"fonts fonts_chorus\">"+document.querySelector("#chorus_song").value+"</pre>";
+		var verses = "<pre class=\"fonts font_verses\">"+document.querySelector("#verses_song").value+"</pre>";
+
+		var songs = new morning_star();
+		songs.save({
+					category:category,
+					title:title, 
+					chorus:chorus, 
+					verses:verses
+					}, {
+						success:function(object) {
+						console.log("Saved the object!");
+						$("#category_song").val("");
+						$("#title_song").val("");
+						$("#chorus_song").val("");
+						$("#verses_song").val("");
+                            
+			}, 
+			error:function(object,error) {
+				console.dir(error);
+				alert("Sorry, I couldn't save it.");
+			}
+		});
+	});
+
+});	
+
+
+
+function delete_library(){
+	var write_transition = db.transaction("songs_table", "readwrite");
+	var store = write_transition.objectStore("songs_table");
+	var delete_all_rows = store.clear();
+
+	delete_all_rows.onsuccess = function(event){
+		console.log("Deleted all rows");
+	}
+}
+
+
+function add_database(results){
+	db.transaction(["songs_table"], "readwrite").objectStore("songs_table").openCursor().onsuccess = function(e){
+			var cursor = e.target.result;
+	//if there are records in the database, then don't update.
+	if (!cursor){
+				
+		var query = new Parse.Query(morning_star);
+		
+		query.find({
+		success: function(results) {
+			var transaction = db.transaction(["songs_table"], "readwrite");
+
+			//ask for objectstore
+			var store = transaction.objectStore("songs_table");
+			var s;
+			for(var i=0, len=results.length; i<len; i++) {
+				var result = results[i];
+				console.dir(result);
+				
+				var id = result.attributes.id;
+				var category = result.attributes.category;
+				var title = result.attributes.title;
+				var chorus = result.attributes.chorus;
+				var verses = result.attributes.verses;
+				
+				var song = {
+					category:category,
+					title:title,
+					chorus:chorus,
+					verses:verses
+					};
+				var request = store.add(song);
+				
+				request.onsuccess = function(e){
+		   		//intel.xdk.notification.confirm("The song was successfully added.");
+				console.log("The songs were successfully added.");
+				}
+				
+				request.onerror = function(e){
+				intel.xdk.notification.alert("Sorry, the song was not added.");
+				console.log('Error', e.target.title);
+				}
+			}
+		}
+		});
+        show_Songs();
+	}
+	}
+	console.log("Just skipped the add successfully!");
+}
+
+function update_library() {
+	db.transaction(["songs_table"], "readwrite").objectStore("songs_table").openCursor().onsuccess = function(e){
+			var cursor = e.target.result;
+	//if there are records in the database, then don't update.
+	if (window.navigator.onLine==true){
+		delete_library();		
+		
+		var ref = new Firebase("https://chymns.firebaseio.com/");
+
+		ref.once("value", function(snapshot) {
+			snapshot.forEach(function(childSnapshot) {
+    		// key will be "fred" the first time and "barney" the second time
+    		var key = childSnapshot.key();
+   		 // childData will be the actual contents of the child
+    		var childData = childSnapshot.val();
+    		
+				var id = result.attributes.id;
+    			var title = childData.hymn_title;
+				var verses = childData.hymn_verse;
+    		
+    		document.getElementById('song_list').innerHTML += "<li><a>"+childData.hymn_title+"</a></li>";
+  		});
+		});
+		var query = new Parse.Query(morning_star);
+		
+		query.find({
+		success: function(results) {
+			var transaction = db.transaction(["songs_table"], "readwrite");
+
+			//ask for objectstore
+			var store = transaction.objectStore("songs_table");
+			var s;
+			for(var i=0, len=results.length; i<len; i++) {
+				var result = results[i];
+				console.dir(result);
+				
+				var id = result.attributes.id;
+				var title = result.attributes.title;
+				var chorus = result.attributes.chorus;
+				var verses = result.attributes.verses;
+				
+				var song = {
+					title:title,
+					chorus:chorus,
+					verses:verses
+					};
+				var request = store.add(song);
+				
+				request.onsuccess = function(e){
+		   		//intel.xdk.notification.confirm("The song was successfully added.");
+                show_Songs();
+				console.log("The songs were successfully added.");
+				}
+				
+				request.onerror = function(e){
+				intel.xdk.notification.alert("Sorry, the song was not added.");
+				console.log('Error', e.target.title);
+				}
+			}
+		}
+		});
+	}
+	}
+	console.log("Just performed the update successfully!");
+}
+function service_text(x){
+		var request = indexedDB.open('songs', 1);
+		var db;
+		request.onerror = function(e) {
+		  console.log("Unable to retrieve data from database!");
+		};
+		request.onsuccess = function(e){
+			db = request.result;
+			var read_transition = db.transaction("songs_table", "readonly");
+			var store = read_transition.objectStore("songs_table");
+			var row = store.get(x);
+			row.onsuccess = function (e) {
+			 document.querySelector("#song_body").innerHTML = "<h2 class=\"fonts_title\">"+row.result.title+"</h2><i><h4 class=\"fonts_chorus\">"+row.result.chorus+"</i></h4><p><i class=\"fonts_verses\">"+row.result.verses+"</i></p>";
+			};
+			$.mobile.changePage ("#stage", {transition:"slide"});
+			console.log("Display of verses successful!");
+		}
+		//fetch_data();
+	}
+	
+function show_text(x){
+		var request = indexedDB.open('songs', 1);
+		var db;
+		request.onerror = function(e) {
+		  console.log("Unable to retrieve data from database!");
+		};
+		request.onsuccess = function(e){
+			db = request.result;
+			var read_transition = db.transaction("songs_table", "readonly");
+			var store = read_transition.objectStore("songs_table");
+			var row = store.get(x);
+			row.onsuccess = function (e) {
+			 document.querySelector("#song_body").innerHTML = "<h2 class=\"fonts_title\">"+row.result.title+"</h2><i><h4 class=\"fonts_chorus\">"+row.result.chorus+"</i></h4><p><i class=\"fonts_verses\">"+row.result.verses+"</i></p>";
+			};
+			// ATTENTION: change the stage below to options when upgrading
+			$.mobile.changePage ("#stage", {transition:"", reverse:false});
+			console.log("Display of verses successful!");
+		}
+		//fetch_data();
+	}
+
+function add_service(){
+	db.transaction(["service_table"], "readwrite").objectStore("service_table").openCursor().onsuccess = function(e){
+			var cursor = e.target.result;
+			var transaction = db.transaction(["service_table"], "readwrite");
+
+			//ask for objectstore
+			var store = transaction.objectStore("service_table");
+				
+				
+				var service_song = service_hymn;
+				
+				var song = {
+					service_song:service_song
+					};
+				var request = store.add(song);
+			
+				request.onsuccess = function(e){
+		   		//intel.xdk.notification.confirm("The song was successfully added.");
+                
+				console.log("The service song was successfully added.");
+				}
+				
+				request.onerror = function(e){
+				intel.xdk.notification.alert("Sorry, the service song was not successfully added.");
+				console.log('Error', e.target.title);
+				}
+}
+}
+
+function fetch_data() {
+		var service_hymn = document.getElementsByClassName('list_title').innerHTML;
+		console.log(service_hymn);
+}
+
+
+function show_service(){
+	var output='';
+		db.transaction(["service_table"], "readonly").objectStore("service_table").openCursor().onsuccess = function(e){
+			var cursor = e.target.result;
+			
+				
+			if (cursor){
+				//var x = cursor.value.service_song;
+				
+				output += "<li onClick=\"service_text("+cursor.value.id+")\"><a> Song "+cursor.value.id+"</a></li>";
+				cursor.continue();
+			}
+			document.querySelector("#service_list").innerHTML = output;   
+}
+	
+}
+
+
+//show songs onstage
+function show_Songs(){
+		var output='';
+		db.transaction(["songs_table"], "readonly").objectStore("songs_table").openCursor().onsuccess = function(e){
+			var cursor = e.target.result;
+			if (cursor){
+				var x = cursor.value.id;
+				//var z = cursor.value.title;
+				output += "<li onClick=\"show_text("+cursor.value.id+")\"><a><span class=\"list_title\">"+cursor.value.title+"</span></a></li>";
+				cursor.continue();
+			}
+			document.querySelector("#song_list").innerHTML = output;   
+		}
+	}
+
+function show_stage(){
+	$.mobile.changePage ("#stage", {transition:"fade"});
+}
+
+
+function go_back(){
+	$.mobile.back();
+	document.querySelector("#song_body").innerHTML = "<h3 id=\"song_body_text\">There is no item on stage!</h3><p id=\"song_body_text\">Select a song <br>from the Library <br>and show on stage.</p>";
+}
+
+
+
+
+
+function delete_database(){
+var DBDeleteRequest = window.indexedDB.deleteDatabase("songs");
+
+DBDeleteRequest.onerror = function(event) {
+  console.log("Error deleting database.");
+};
+ 
+DBDeleteRequest.onsuccess = function(event) {
+  console.log("Database deleted successfully");
+    
+  console.log(request.result); // should be null
+};
+
+}
+
+
+
+$("#show_on_stage").click(function(){
+			  $.mobile.changePage ("#stage", {transition:"slide"});
+		});
+	$("#stage_button").click(function(){
+			  $.mobile.changePage ("#stage", {transition:"slide"});
+		});
+	$("#service_button").click(function(){
+			  $.mobile.changePage ("#service", {transition:"slide"});
+		});
+	$("#library_button").click(function(){
+			  $.mobile.changePage ("#library", {transition:"slide"});
+		});
+	$("#settings_button").click(function(){
+			  $.mobile.changePage ("#settings", {transition:"slide"});
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,78 @@
+li.completed a {
+    color: grey !important;
+    text-decoration: line-through !important;
+}
+
+.fonts {
+    font-family: Helvetica, Arial, sans-serif;
+    padding: 0px;
+    margin: 0px;
+    text-align: justify;
+}
+
+.fonts_title {
+    font-size: 1.2em;
+    text-align: justify;
+}
+
+.fonts_chorus {
+    font-size: 1.125em;
+    text-align: justify;
+}
+
+.fonts_verses {
+    font-size: 1.3em;
+    font-style: normal;
+    text-align: justify;
+}
+
+.fonts_size {
+    font-size: 2em;
+}
+
+#song_body {
+    width: auto;
+    height: auto;
+}
+
+#add_song {
+    padding-top: 30px;
+}
+
+#song_body_text {
+    text-align: center;
+    font-size: 20px;
+}
+
+.song_paragraph{
+    text-align: center;
+    font-size: 20px;
+}
+
+#upgrade {
+    font-size: 17px;
+    font-style: italic;
+    text-align: center;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+#wrapper {
+    position: relative;
+    min-height: 100%;
+}
+
+#main {
+    padding-bottom: 44px;
+}
+
+.footer {
+    height: 44px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
