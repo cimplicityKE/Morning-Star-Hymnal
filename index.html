@@ -5,21 +5,20 @@
     <meta charset="utf-8">
     <meta id="viewport" name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">
     <title>cHymns</title>
+
     <link rel="stylesheet" href="./lib/jquery.mobile-1.3.2.min.css">
     <link rel="stylesheet" href="./lib/style.css">
-
-    <!-- Include core scripts -->
-    <script src="./js/store.js"></script>
-    <script src="./js/dexie.js"></script>
 
     <!-- Include scripts -->
     <script src="./lib/jquery-1.10.2.min.js"></script>
     <script src="./lib/jquery.mobile-1.3.2.min.js"></script>
     <script src="./js/jquery.textfill.js"></script>
     <script src="./js/jquery.textfill.min.js"></script>
+    <script src="./js/jquery.isloading.min.js"></script>
     <script src="./js/parse.min.js"></script>
-    <script src="./js/tinysort.js"></script>
+    <script src="./js/localforage.js"></script>
     <script src="./js/main.js"></script>
+    <script src="./js/main_parse.js"></script>
 
 </head>
 
@@ -32,9 +31,9 @@
         </div>
         <div data-role="content">
             <div data-role="controlgroup">
-                <a href="#stage" data-role="button" data-icon="arrow-r" data-iconpos="right">Hymnal</a>
-                <a href="#settings" data-role="button" data-icon="arrow-r" data-iconpos="right">Settings</a>
-                <a href="#about" data-role="button" data-icon="arrow-r" data-iconpos="right">About</a>
+                <a id="hymnal" href="#stage" data-role="button" data-icon="arrow-r" data-iconpos="right">Hymnal</a>
+                <a id="settings" href="#settings" data-role="button" data-icon="arrow-r" data-iconpos="right">Settings</a>
+                <a id="about" href="#about" data-role="button" data-icon="arrow-r" data-iconpos="right">About</a>
             </div>
         </div>
         <div class="footer" data-role="footer" data-theme="b">
@@ -121,9 +120,7 @@
         </div>
         <div id="song_lists" data-role="content">
             <h3 style="text-align:center; margin-top: 5px;">Song Library</h3>
-            <ul id="song_list" data-role="listview" data-inset="true" data-divider-theme="a" data-filter="true" data-filter-placeholder="Search Songs here...">
-
-            </ul>
+            <ul id="song_list" data-role="listview" data-inset="true" data-divider-theme="a" data-filter="true" data-filter-placeholder="Search Songs here..."></ul>
         </div>
     </div>
     <!-- Library -->
@@ -134,9 +131,9 @@
             <a href="#home" data-role="button" data-icon="home" data-iconpos="left">Home</a>
             <h1>cHymns</h1>
         </div>
-        <!-- <h3 style="text-align:center; margin-bottom:-10px;">Add a new song</h3>-->
+        <h3 style="text-align:center; margin-bottom:-10px;">Add a new song</h3>
         <div id="add_song" data-role="controlgroup">
-            <!--<a href="#add_newsong" data-role="button" data-icon="arrow-r" data-iconpos="right">Add a new song</a>-->
+            <a href="#add_newsong" data-role="button" data-icon="arrow-r" data-iconpos="right">Add a new song</a>
             <a href="#dialog" data-role="button" data-icon="arrow-r" data-iconpos="right">Update the Library</a>
             <p id="upgrade">
                 Note: To update the library, your device has to be
@@ -182,20 +179,25 @@
     </div>
     <!-- Add a new song -->
 
+
     <!-- About -->
     <div data-role="page" id="about">
         <div data-role="header" data-position="fixed" data-theme="b">
             <a href="#home" data-role="button" data-icon="home" data-iconpos="left">Home</a>
             <h1>cHymns</h1>
         </div>
-        <p style="padding:20px; text-align:center; margin-bottom: -20px;"><strong>cHymns version 0.2</strong><br><br>Copyright © 2016. Cimplicity Apps.<br>Developer: Valentine Mwangi.
+
+        <p style="padding:20px; text-align:center; margin-bottom: -20px;"><strong>cHymns version 0.0.2</strong><br><br><strong>No. of Hymns:</strong><span id="no_of_hymns"> </span><br><br>Copyright © 2016. Cimplicity Apps.<br>Developer: Valentine Mwangi.
             </p>
-            <p style="padding:20px; text-align:; margin-bottom: -20px;"><strong>What's new in version 0.2?</strong><br><br>1. 1000 hymns library limit.<br>2. Program feature.
+            <p style="padding:20px; text-align:; margin-bottom: -20px;"><strong>What's new in version 0.0.2?</strong><br><br>1. Program feature.
             </p>
 
             <p style="padding:20px; text-align:justify; padding-bottom:50px;"><strong>Terms and Conditions</strong><br><br>This application is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br><br>
 
-            This application is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details: <a href="http://www.gnu.org/licenses/.">http://www.gnu.org/licenses/</a>.
+            This application is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details: <a href="http://www.gnu.org/licenses/.">http://www.gnu.org/licenses/</a>. <br><br>
+
+            <strong>Collaboration</strong><br><br>
+            For developers willing to collaborate on this project, visit <a href="https://github.com/cimplicityKE/cHymnsApp">the cHymns github profile</a>.
             </p>
 
         <div class="footer" data-role="footer" data-theme="b">
@@ -209,7 +211,7 @@
         <div data-role="content">
             <h3 class="center">Update the hymn library</h3>
             <p class="center">Are you sure you want to update the library?</p>
-            <a data-role="button" data-theme="b" data-rel="back" onclick="update_library()">Yes</a>
+            <a href="#loading" data-role="button" data-theme="b" onclick="update_library()">Yes</a>
             <a href="#settings" data-role="button" data-theme="c" data-rel="back">No</a>
         </div>
     </div>
@@ -243,6 +245,7 @@
             <p class="center">The library is being updated. Please wait for a few moments.</p>
         </div>
     </div>
+    <!-- Loading -->
 
 
 </body>

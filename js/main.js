@@ -36,7 +36,6 @@ $(document).ready(function () {
 
         }
 
-
         if (!db.objectStoreNames.contains('service_table')) {
             var store2 = db.createObjectStore('service_table', {
                 keyPath: 'id',
@@ -65,10 +64,11 @@ $(document).ready(function () {
         show_Songs();
         add_database();
         load_program();
+        no_of_hymns();
         //save_to_program();
         //delete_program();
         // delete_database();
-        $("#clear_program").hide();
+
     }
 
     //error
@@ -78,7 +78,6 @@ $(document).ready(function () {
 
 
     morning_star = Parse.Object.extend("morning_star");
-
 
     $("#saveSong").on("submit", function (e) {
         e.preventDefault();
@@ -108,37 +107,26 @@ $(document).ready(function () {
                 });
             },
             error: function (object, error) {
-                //Go back to add new song page
-                console.dir(error);
                 alert("Sorry, We couldn't save the song. Please try again.");
             }
         });
     });
 });
 
-
-
-
 function delete_program() {
     var write_transition = db.transaction("service_table", "readwrite");
     var store = write_transition.objectStore("service_table");
     var delete_all_rows = store.clear();
-
     delete_all_rows.onsuccess = function (event) {
         console.log("Deleted all rows");
+        $("#clear_program").hide();
     }
-
     document.querySelector("#service_list").innerHTML = "";
-    $("#clear_program").hide();
-    //empty_program_notification();
 }
 
 function empty_program_notification() {
-
-    //document.querySelector("#service_body").innerHTML = "<h3 id=\"song_body_text\" class=\"hymn_title\">There is no hymn on the program.</h3><span class=\"hymn_id\"</span><p class=\"song_paragraph\"><br>Select a hymn from the library,<br> show on stage and then<br> add to program.</p>";
     $("#service_body").append("<h3 id=\"song_body_text\" class=\"hymn_title\">There is no hymn on the program.</h3><span class=\"hymn_id\"</span><p class=\"song_paragraph\"><br>Select a hymn from the library,<br> show on stage and then<br> add to program.</p>");
     $("#clear_program").hide();
-    //$("#song_body_text").hide();
     document.querySelector("#song_body_text").innerHTML = "";
 }
 
@@ -146,7 +134,6 @@ function delete_library() {
     var write_transition = db.transaction("songs_table", "readwrite");
     var store = write_transition.objectStore("songs_table");
     var delete_all_rows = store.clear();
-
     delete_all_rows.onsuccess = function (event) {
         console.log("Deleted all rows");
     }
@@ -157,7 +144,6 @@ function add_database(results) {
         var cursor = e.target.result;
         //if there are records in the database, then don't update.
         if (!cursor) {
-
             var query = new Parse.Query(morning_star);
             query.limit(1000);
             query.find({
@@ -186,21 +172,17 @@ function add_database(results) {
                         var request = store.add(song);
 
                         request.onsuccess = function (e) {
-                            //intel.xdk.notification.confirm("The song was successfully added.");
-                            console.log("The songs were successfully added.");
+                            update_library();
                         }
 
                         request.onerror = function (e) {
-                            intel.xdk.notification.alert("Sorry, the song was not added.");
-                            console.log('Error', e.target.title);
+                            window.alert("Sorry, it appears there was a problem adding the song. Adding Failed. ");
                         }
                     }
                 }
             });
-            update_library();
         }
     }
-    console.log("Just skipped the add successfully!");
 }
 
 function library_update_notification() {
@@ -210,13 +192,18 @@ function library_update_notification() {
 }
 
 function update_library() {
+
+    //hide main menu links
+    $("#hymnal").hide();
+    $("#settings").hide();
+    $("#about").hide();
+    $.mobile.changePage("#settings");
     db.transaction(["songs_table"], "readwrite").objectStore("songs_table").openCursor().onsuccess = function (e) {
         var cursor = e.target.result;
         //if there are records in the database, then don't update.
         if (window.navigator.onLine == true) {
-
+            delete_program();
             delete_library();
-
             var query = new Parse.Query(morning_star);
             query.limit(1000);
             query.find({
@@ -244,8 +231,10 @@ function update_library() {
 
                         request.onsuccess = function (e) {
 
-                            show_Songs();
+                            //show_Songs();
                             location.reload();
+                            //hide main menu links
+
                             //Go to Homepage
                             console.log("The songs were successfully added.");
                         }
@@ -258,9 +247,14 @@ function update_library() {
                 }
             });
 
+        } else {
+            alert("Sorry, Update failed since there was not internet connection.");
         }
     }
     console.log("Just performed the update successfully!");
+    $("#hymnal").show();
+    $("#settings").show();
+    $("#about").show();
 }
 
 function service_text(x) {
@@ -322,8 +316,6 @@ function save_to_program() {
     });
 
     request.onsuccess = function (event) {
-
-
         $("#service_list").append("<li onClick=\"show_text(" + hymn_id + ")\"><a><span class=\"list_title\">" + hymn_title + "</span></a></li>").listview('refresh');
 
         $("#song_body_text").hide();
@@ -344,6 +336,7 @@ function save_to_program() {
 complete: function load_program() {
     var output = '';
     $("#add_to_program").hide();
+    $("#clear_program").hide();
     /*var a = $("#song_body").html();
         if (a==""){
             $("#clear_program").hide();
@@ -356,9 +349,11 @@ complete: function load_program() {
         if (cursor) {
             output += "<li onClick=\"show_text(" + cursor.value.hymn_id + ")\"><a><span class=\"list_title\">" + cursor.value.hymn_title + "</span></a></li>";
             cursor.continue();
+            $("#clear_program").show();
         }
         document.querySelector("#service_list").innerHTML = output;
         $("#song_body_text").show();
+
     }
 }
 
@@ -449,6 +444,13 @@ function delete_database() {
 
     DBDeleteRequest.onsuccess = function (event) {
         console.log("Database deleted successfully");
+    };
+}
+
+//Get no. of hymns and display in about section
+function no_of_hymns() {
+    db.transaction(["songs_table"], "readonly").objectStore("songs_table").count().onsuccess = function (event) {
+        $("#no_of_hymns").text(" " + event.target.result + ".");
     };
 }
 
