@@ -1,4 +1,4 @@
-Parse.initialize("", "");
+Parse.initialize("6MpmogydglUQ6iybpr62uewbuDlwOR2AuksjxYMw", "9yPVavXp18Z6lIIbIYEYdVb9wA0cC2BYbuLUBdC7");
 $(document).ready(function () {
 
     if (window.indexedDB) {
@@ -7,7 +7,6 @@ $(document).ready(function () {
         intel.xdk.notification.alert("Sorry, the type of database (IndexedDB) used by this app is not supported in your phone. Update to the latest mobile firefox or chrome browser to allow IndexedDb support. We are working hard to ensure that support in all phones. Thank you.");
         window.close();
     }
-
     //open database
     var request = indexedDB.open('songs', 1);
 
@@ -489,4 +488,16 @@ $("#settings_button").click(function () {
     $.mobile.changePage("#settings", {
         transition: "slide"
     });
+});
+
+$(document).ready(function () {
+
+    var fontSize = $(window).width() / 50;
+    $('body').css('font-size', fontSize);
+
+    $(window).resize(function () {
+        var fontSize = $(window).width() / 50;
+        $('body').css('font-size', fontSize);
+    });
+
 });
