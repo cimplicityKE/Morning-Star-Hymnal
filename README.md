@@ -1,2 +1,2 @@
 # cHymnsApp
-Largest Catholic Hymnal App
+Hymnal App for Catholic Songs
